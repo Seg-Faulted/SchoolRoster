@@ -1,6 +1,3 @@
-// if cargo stuck on 'Blocking waiting for file lock on package cache, use
-// rm -rf ~/.cargo/registry/index/* ~/.cargo/.package-cache
-
 /// We derive Deserialize/Serialize so we can persist app state on shutdown.
 #[derive(serde::Deserialize, serde::Serialize)]
 #[serde(default)] // if we add new fields, give them default values when deserializing old state
@@ -56,9 +53,7 @@ impl eframe::App for TemplateApp {
                 // NOTE: no File->Quit on web pages!
                 let is_web = cfg!(target_arch = "wasm32");
                 if !is_web {
-                    ui.add_space(12.5);
-                    ui.menu_button("Roster Management", |ui| {
-                        if ui.button("Help").clicked() {}
+                    ui.menu_button("File", |ui| {
                         if ui.button("Quit").clicked() {
                             ctx.send_viewport_cmd(egui::ViewportCommand::Close);
                         }
@@ -70,51 +65,45 @@ impl eframe::App for TemplateApp {
             });
         });
 
-        egui::SidePanel::left("my_left_panel").show(ctx, |ui| {
-            ui.add_space(13.0);
-            ui.label("RST");
-            ui.add_space(0.5);
-            ui.label("Manager");
-            ui.add_space(20.0);
-            ui.separator();
-            ui.add_space(20.0);
-            ui.group(|ui| {
-                // ui.label
-                if ui.button("👤 Profile").clicked() {
-                    println!("Profile configuration presssed!");
-                }
-                ui.add_space(2.0);
-
-                if ui.button("ℹ School Info").clicked() {
-                    println!("School info clicked!");
-                    // TODO: Implement school info
-                }
-
-                if ui.button("📒 Ledger").clicked() {
-                    println!("Ledger!");
-                    // TODO: Implement Ledger
-                }
-
-                ui.add_space(2.0);
-                if ui.button("📢 Report").clicked() {} // maybe Discipline
-                ui.add_space(2.0);
-                if ui.button("✉ Message").clicked() {} // maybe Comments
-                ui.add_space(2.0);
-                if ui.button("✆ Directory").clicked() {} // maybe Directory
-                ui.add_space(2.0);
-                if ui.button("♖ Events").clicked() {} // maybe Events
-            })
-        });
-
         egui::CentralPanel::default().show(ctx, |ui| {
             // The central panel the region left after adding TopPanel's and SidePanel's
             ui.heading("eframe template");
 
-            ui.separator();
-        });
+            ui.horizontal(|ui| {
+                ui.label("Write something: ");
+                ui.text_edit_singleline(&mut self.label);
+            });
 
-        egui::TopBottomPanel::bottom("bottom_panel").show(ctx, |ui| {
-            ui.label("test");
+            ui.add(egui::Slider::new(&mut self.value, 0.0..=10.0).text("value"));
+            if ui.button("Increment").clicked() {
+                self.value += 1.0;
+            }
+
+            ui.separator();
+
+            ui.add(egui::github_link_file!(
+                "https://github.com/emilk/eframe_template/blob/master/",
+                "Source code."
+            ));
+
+            ui.with_layout(egui::Layout::bottom_up(egui::Align::LEFT), |ui| {
+                powered_by_egui_and_eframe(ui);
+                egui::warn_if_debug_build(ui);
+            });
         });
     }
+}
+
+fn powered_by_egui_and_eframe(ui: &mut egui::Ui) {
+    ui.horizontal(|ui| {
+        ui.spacing_mut().item_spacing.x = 0.0;
+        ui.label("Powered by ");
+        ui.hyperlink_to("egui", "https://github.com/emilk/egui");
+        ui.label(" and ");
+        ui.hyperlink_to(
+            "eframe",
+            "https://github.com/emilk/egui/tree/master/crates/eframe",
+        );
+        ui.label(".");
+    });
 }
